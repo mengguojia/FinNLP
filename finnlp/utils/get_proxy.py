@@ -1,3 +1,6 @@
+import random
+from bs4 import BeautifulSoup
+import json
 import requests
 import parsel
 from lxml import etree
@@ -40,27 +43,36 @@ def get_china_free_proxy(pages = 10):
     for page in tqdm(range(1, pages+1), desc = "Gathering free ips by pages..."):
 
         base_url = f'https://www.kuaidaili.com/free/inha/{page}'
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36'}
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+                   'referer': 'https://www.kuaidaili.com/free/inha/'}
+        cookies = ''
         success = False
         while not success:
             try:
-                response = requests.get(base_url, headers=headers)
+                response = requests.get(base_url, headers=headers, cookies=cookies)
                 data = response.text
-                res = etree.HTML(data)
-                trs = res.xpath('//table/tbody/tr')
-                if len(trs)!=0:
+                soup = BeautifulSoup(data)
+                res = soup.find_all('script',type='text/javascript')
+                # res = etree.HTML(data)
+                # trs = res.xpath('//table/tbody/tr')
+                if len(res)!=0:
                     success = True
-                    for tr in trs:
+                    trs = re.findall('\{"ip":.+?\}',res[3].get_text())
+                    for i in trs:
                         proxies_dict = {}
-                        http_type = tr.xpath('./td[4]/text()')[0]
-                        ip_num = tr.xpath('./td[1]/text()')[0]
-                        port_num = tr.xpath('./td[2]/text()')[0]
+                        http_type = 'http'
+                        # http_type = tr.xpath('./td[4]/text()')[0]
+                        tr = json.loads(i)
+                        ip_num = tr['ip']
+                        # ip_num = tr.xpath('./td[1]/text()')[0]
+                        port_num = tr['port']
+                        # port_num = tr.xpath('./td[2]/text()')[0]
                         proxies_dict[http_type] = ip_num + ':' + port_num
                         proxies_list.append(proxies_dict)
                 else:
-                    time.delay(0.01)
+                    time.sleep(random.randint(2,20)/10)
       
-            except:
+            except Exception:
                 pass
 
     can_use = check_china_ips(proxies_list)
