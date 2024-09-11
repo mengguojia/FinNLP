@@ -1,7 +1,7 @@
 from finnlp.data_sources.news.sina_finance_date_range import Sina_Finance_Date_Range
 
 start_date = "2024-06-01"
-end_date = "2024-06-05"
+end_date = "2024-06-01"
 config = {
     "use_proxy": "china_free",
     "max_retry": 5,

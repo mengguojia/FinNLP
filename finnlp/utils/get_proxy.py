@@ -51,7 +51,7 @@ def get_china_free_proxy(pages = 10):
             try:
                 response = requests.get(base_url, headers=headers, cookies=cookies)
                 data = response.text
-                soup = BeautifulSoup(data)
+                soup = BeautifulSoup(data,'html.parser')
                 res = soup.find_all('script',type='text/javascript')
                 # res = etree.HTML(data)
                 # trs = res.xpath('//table/tbody/tr')

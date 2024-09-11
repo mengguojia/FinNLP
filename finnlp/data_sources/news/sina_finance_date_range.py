@@ -46,9 +46,9 @@ class Sina_Finance_Date_Range(News_Downloader):
                 time.sleep(delay)
         
         if res.shape[0] != 0:
-            res.ctime = pd.to_datetime(res.ctime, unit="s", utc=True)
-            res.mtime = pd.to_datetime(res.mtime, unit="s", utc=True)
-            res.intime = pd.to_datetime(res.intime, unit="s", utc=True)
+            res.ctime = pd.to_datetime(res.ctime.astype(int), unit="s", utc=True)
+            res.mtime = pd.to_datetime(res.mtime.astype(int), unit="s", utc=True)
+            res.intime = pd.to_datetime(res.intime.astype(int), unit="s", utc=True)
 
             tz = pytz.timezone("Asia/Shanghai")
             res.ctime = [t.astimezone(tz) for t in res.ctime]

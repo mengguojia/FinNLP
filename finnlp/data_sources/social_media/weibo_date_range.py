@@ -4,6 +4,7 @@ from tqdm import tqdm
 from lxml import etree
 import pandas as pd
 import numpy as np
+import random
 import requests
 import datetime
 import time
@@ -18,21 +19,19 @@ class Weibo_Date_Range(Social_Media_Downloader):
         self.cookies = args["cookies"]
         self.dataframe = pd.DataFrame()
 
+    def _get_cookies(self):
+        assert type(self.cookies) == list
+        return random.choice(self.cookies)
+
     def download_date_range_stock(self, start_date, end_date, start_hour= 0,end_hour = 0,stock = "茅台", delay = 0.01):
-        self.date_list = pd.date_range(start_date, end_date)
-        for date in tqdm(self.date_list, desc = "Downloading by dates..."):
-            date = date.strftime("%Y-%m-%d")
-            self._gather_one_day(date, start_hour, end_hour, stock, delay)
+        start_dt = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        end_dt = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+        start_time_range = [start_dt + datetime.timedelta(hours=i) for i in range(int((end_dt - start_dt).days) * 24 + 1)]
+        for i in tqdm(start_time_range, desc = "Downloading by dates..."):
+            self._gather_one_hour(i.strftime('%Y-%m-%d'), (i+datetime.timedelta(hours=1)).strftime('%Y-%m-%d'), i.strftime('%H'), (i+datetime.timedelta(hours=1)).strftime('%H'), stock, delay)
         self.dataframe = self.dataframe.reset_index(drop = True)
 
-    def _gather_one_day(self,date,start_hour, end_hour, stock = "茅台", delay = 0.01):
-        if start_hour == 0 and end_hour == 0:
-            start_date = datetime.datetime.strptime(date, "%Y-%m-%d")
-            end_date = start_date + datetime.timedelta(days=1)
-            start_date = start_date.strftime("%Y-%m-%d")
-            end_date = end_date.strftime("%Y-%m-%d")
-        else:
-            start_date = date, end_date = date 
+    def _gather_one_hour(self, start_date, end_date, start_hour, end_hour, stock ="茅台", delay = 0.01):
 
         # first page
         all_urls = self._gather_first_page(start_date, end_date, start_hour, end_hour, stock, delay)
@@ -41,13 +40,13 @@ class Weibo_Date_Range(Social_Media_Downloader):
             base_url=  "https://s.weibo.com/"
             for url_new in all_urls:
                 url_new = base_url + url_new
-                self._gather_other_pages(date, url_new, delay)
+                self._gather_other_pages(start_date, url_new, delay)
          
     def _gather_first_page(self,start_date, end_date, start_hour, end_hour, stock = "茅台", delay = 0.01):  
         
         headers = {
-            "cookie": self.cookies,
-            "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0", 
+            "cookie": self._get_cookies(),
+            "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             }
         
         params = {
@@ -107,7 +106,7 @@ class Weibo_Date_Range(Social_Media_Downloader):
     def _gather_other_pages(self, date, url, delay = 0.01):
         
         headers = {
-            "cookie": self.cookies,
+            "cookie": self._get_cookies(),
             "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/112.0", 
             }
         
