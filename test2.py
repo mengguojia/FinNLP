@@ -6,11 +6,8 @@ stock = "茅台"
 config = {
     "use_proxy": "china_free",
     "max_retry": 5,
-    "proxy_pages": 4,
-    "cookies": [{'SCF':'AgSKSNNF__c-jYUVZHHqzhwTg42PwMsvJuP3lgyg340N0ThFzkzJWqZUtSy1th6nn4Qc9Kp5dUBLATDUAtVUrMA.',
-                 'SUB':'_2A25L5flMDeRhGeFH6loS8SfOzDSIHXVom3SErDV8PUNbmtANLRPkkW9Ne98MBWSNehprpMgFXeP7aNSeDYOyjWig',
-                 'SUBP':'0033WrSXqPxfM725Ws9jqgMF55529P9D9W59LmVM7.KqJ2caMVZSGlcV5JpX5KzhUgL.FoM4eKn0eK.ES0n2dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMN1K2Re024eoMR',
-                 'ALF':'02_1728648732'}],
+    "proxy_pages": 8,
+    "cookies": ["XSRF-TOKEN=2lWIgDpoMKZTmpzOJnjrijmJ; SCF=AoDp1R6JLdrtLm1HRHrJOo550POoMLaPFTXdUntAcsSv8nnHpGrBmF7706p8f-JK1B9avIBzDV4OKZoDDGRCPUg.; SUB=_2A25L4vyBDeRhGeFH6loS8SfOzDSIHXVonnBJrDV8PUNbmtAGLVbakW9Ne98MBXrSF4mb6u3Jck3a0DS3LE5wh0D0; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W59LmVM7.KqJ2caMVZSGlcV5JpX5KzhUgL.FoM4eKn0eK.ES0n2dJLoIp7LxKML1KBLBKnLxKqL1hnLBoMN1K2Re024eoMR; ALF=02_1728977362; WBPSESS=zIwU43xUakDnbfYNoOnwUfKhqClBj6PPAlCvRT5NIcWkof-MdGg5FmLQq_s9L_T5__pzjQz1_R0WxMKgwxcj-dnqeaNPGScBg3oAMDr2yD-Ecf2y2tTv1GeTvWRnWlUV"],
 }
 
 #%%

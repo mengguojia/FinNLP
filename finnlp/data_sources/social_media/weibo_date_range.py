@@ -38,7 +38,7 @@ class Weibo_Date_Range(Social_Media_Downloader):
         # another pages
         if len(all_urls)>1:
             base_url=  "https://s.weibo.com/"
-            for url_new in all_urls:
+            for url_new in all_urls[1:]:
                 url_new = base_url + url_new
                 self._gather_other_pages(start_date, url_new, delay)
          
@@ -72,31 +72,49 @@ class Weibo_Date_Range(Social_Media_Downloader):
         all_pages = res.xpath('//*[@id="pl_feedlist_index"]/div[3]/div[1]/span/ul/li//@href')
         items = res.xpath('//div[@class="card-wrap"]')
         for i in items:
-            ps = i.xpath('.//div[@class="content"]//p')
             try:
-                content = ps[0].xpath(".//text()")
+                content = i.xpath('.//div[@class="content"]//p//text()')
                 content = ''.join(content)
                 content = content.replace('\n',"")
                 content = content.replace(' ',"")
                 content = content.replace('\u200b',"")
             except:
                 continue
-            
-            info = ps[1].xpath(".//text()")
-            try:
-                date_content = info[1]
-                date_content = date_content.replace('\n',"")
-                date_content = date_content.replace(' ',"")
-            except:
-                date_content = np.nan
 
             try:
-                source = info[3]
+                source = i.xpath('.//div[@class="from"]//a')
+                date_content = source[0].text
+                date_content = date_content.replace('\n',"")
+                date_content = date_content.replace(' ',"")
+                link = 'https://'+source[0].xpath('.//@href')[0].split('?')[0]
             except:
-                source = np.nan
+                date_content = np.nan
+                link = None
+
+            try:
+                user = i.xpath('.//div[@class="content"]//p//@nick-name')[0]
+            except:
+                user = np.nan
+
+            try:
+                card_info = i.xpath('.//div[@class="card-act"]//a[@class="woo-box-flex woo-box-alignCenter woo-box-justifyCenter"]')
+                forward = ''.join(card_info[0].xpath('.//text()'))
+                forward = forward.replace('\n', "")
+                forward = forward.replace(' ', "")
+                comment = ''.join(card_info[1].xpath('.//text()'))
+                comment = comment.replace('\n', "")
+                comment = comment.replace(' ', "")
+                like = ''.join(card_info[2].xpath('.//text()'))
+                like = like.replace('\n', "")
+                like = like.replace(' ', "")
+            except:
+                forward = 0
+                comment = 0
+                like = 0
+
             
-            tmp = pd.DataFrame([start_date, date_content, source, content]).T
-            tmp.columns = ["date","date_content", "source", "content"]
+            tmp = pd.DataFrame([start_date, date_content, user, content, link, forward, comment, like]).T
+            tmp.columns = ["date","date_content", "user", "content", "link", "forward", "comment", "like"]
             self.dataframe = pd.concat([self.dataframe, tmp])
 
         time.sleep(delay)
@@ -123,31 +141,55 @@ class Weibo_Date_Range(Social_Media_Downloader):
         all_pages = res.xpath('//*[@id="pl_feedlist_index"]/div[3]/div[1]/span/ul/li//@href')
         items = res.xpath('//div[@class="card-wrap"]')
         for i in items:
-            ps = i.xpath('.//div[@class="content"]//p')
             try:
-                content = ps[0].xpath(".//text()")
+                content = i.xpath('.//div[@class="content"]//p//text()')
                 content = ''.join(content)
-                content = content.replace('\n',"")
-                content = content.replace(' ',"")
-                content = content.replace('\u200b',"")
+                content = content.replace('\n', "")
+                content = content.replace(' ', "")
+                content = content.replace('\u200b', "")
             except:
                 continue
-            
-            info = ps[1].xpath(".//text()")
-            try:
-                date_content = info[1]
-                date_content = date_content.replace('\n',"")
-                date_content = date_content.replace(' ',"")
-            except:
-                date_content = np.nan
 
             try:
-                source = info[3]
+                source = i.xpath('.//div[@class="from"]//a')
+                date_content = source[0].text
+                date_content = date_content.replace('\n', "")
+                date_content = date_content.replace(' ', "")
+                link = 'https://' + source[0].xpath('.//@href')[0].split('?')[0]
             except:
-                source = np.nan
-            
-            tmp = pd.DataFrame([date, date_content, source, content]).T
-            tmp.columns = ["date", "date_content", "source", "content"]
+                date_content = np.nan
+                link = None
+
+            try:
+                user = i.xpath('.//div[@class="content"]//p//@nick-name')[0]
+            except:
+                user = np.nan
+
+            try:
+                card_info = i.xpath(
+                    './/div[@class="card-act"]//a[@class="woo-box-flex woo-box-alignCenter woo-box-justifyCenter"]')
+                forward = ''.join(card_info[0].xpath('.//text()'))
+                forward = forward.replace('\n', "")
+                forward = forward.replace(' ', "")
+                if not forward.isdecimal():
+                    forward = 0
+                comment = ''.join(card_info[1].xpath('.//text()'))
+                comment = comment.replace('\n', "")
+                comment = comment.replace(' ', "")
+                if not comment.isdecimal():
+                    comment = 0
+                like = ''.join(card_info[2].xpath('.//text()'))
+                like = like.replace('\n', "")
+                like = like.replace(' ', "")
+                if not like.isdecimal():
+                    like = 0
+            except:
+                forward = np.nan
+                comment = np.nan
+                like = np.nan
+
+            tmp = pd.DataFrame([date, date_content, user, content, link, forward, comment, like]).T
+            tmp.columns = ["date", "date_content", "user", "content", "link", "forward", "comment", "like"]
             self.dataframe = pd.concat([self.dataframe, tmp])
 
         time.sleep(delay)

@@ -52,7 +52,7 @@ class FinNLP_Downloader:
         proxies = self._get_proxy()
         for _ in range(max_retry):
             try:
-                response = requests.get(url = url, proxies = proxies, headers = headers, verify = verify, params = params)
+                response = requests.get(url = url, proxies = proxies, headers = headers, verify = verify, params = params, timeout=5)
                 if response.status_code == 200:
                     break
             except:
@@ -68,7 +68,7 @@ class FinNLP_Downloader:
         proxies = self._get_proxy()
         for _ in range(max_retry):
             try:
-                response = requests.post(url = url, headers = headers, json = json, proxies = proxies)
+                response = requests.post(url = url, headers = headers, json = json, proxies = proxies, timeout=5)
                 if response.status_code == 200:
                     break
             except:
