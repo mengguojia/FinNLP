@@ -41,6 +41,7 @@ class Weibo_Date_Range(Social_Media_Downloader):
             for url_new in all_urls[1:]:
                 url_new = base_url + url_new
                 self._gather_other_pages(start_date, url_new, delay)
+                print('第', url_new[-1], '页')
          
     def _gather_first_page(self,start_date, end_date, start_hour, end_hour, stock = "茅台", delay = 0.01):  
         
@@ -71,6 +72,7 @@ class Weibo_Date_Range(Social_Media_Downloader):
         # get all pages
         all_pages = res.xpath('//*[@id="pl_feedlist_index"]/div[3]/div[1]/span/ul/li//@href')
         items = res.xpath('//div[@class="card-wrap"]')
+        df_list = []
         for i in items:
             try:
                 content = i.xpath('.//div[@class="content"]//p//text()')
@@ -86,7 +88,7 @@ class Weibo_Date_Range(Social_Media_Downloader):
                 date_content = source[0].text
                 date_content = date_content.replace('\n',"")
                 date_content = date_content.replace(' ',"")
-                link = 'https://'+source[0].xpath('.//@href')[0].split('?')[0]
+                link = 'https:'+source[0].xpath('.//@href')[0].split('?')[0]
             except:
                 date_content = np.nan
                 link = None
@@ -97,26 +99,36 @@ class Weibo_Date_Range(Social_Media_Downloader):
                 user = np.nan
 
             try:
-                card_info = i.xpath('.//div[@class="card-act"]//a[@class="woo-box-flex woo-box-alignCenter woo-box-justifyCenter"]')
+                card_info = i.xpath(
+                    './/div[@class="card-act"]//a[@class="woo-box-flex woo-box-alignCenter woo-box-justifyCenter"]')
                 forward = ''.join(card_info[0].xpath('.//text()'))
                 forward = forward.replace('\n', "")
                 forward = forward.replace(' ', "")
+                if not forward.isdecimal():
+                    forward = 0
                 comment = ''.join(card_info[1].xpath('.//text()'))
                 comment = comment.replace('\n', "")
                 comment = comment.replace(' ', "")
+                if not comment.isdecimal():
+                    comment = 0
                 like = ''.join(card_info[2].xpath('.//text()'))
                 like = like.replace('\n', "")
                 like = like.replace(' ', "")
+                if not like.isdecimal():
+                    like = 0
             except:
-                forward = 0
-                comment = 0
-                like = 0
+                forward = np.nan
+                comment = np.nan
+                like = np.nan
 
             
             tmp = pd.DataFrame([start_date, date_content, user, content, link, forward, comment, like]).T
             tmp.columns = ["date","date_content", "user", "content", "link", "forward", "comment", "like"]
-            self.dataframe = pd.concat([self.dataframe, tmp])
+            df_list.append(tmp)
+        if df_list:
+            self.dataframe = pd.concat([self.dataframe, pd.concat(df_list)])
 
+        print(f"采集完成{start_date}-{start_hour}:{end_date}-{end_hour}")
         time.sleep(delay)
 
         return all_pages
@@ -138,8 +150,9 @@ class Weibo_Date_Range(Social_Media_Downloader):
 
         res = etree.HTML(resp.content)
         # get all pages
-        all_pages = res.xpath('//*[@id="pl_feedlist_index"]/div[3]/div[1]/span/ul/li//@href')
+        # all_pages = res.xpath('//*[@id="pl_feedlist_index"]/div[3]/div[1]/span/ul/li//@href')
         items = res.xpath('//div[@class="card-wrap"]')
+        df_list = []
         for i in items:
             try:
                 content = i.xpath('.//div[@class="content"]//p//text()')
@@ -155,7 +168,7 @@ class Weibo_Date_Range(Social_Media_Downloader):
                 date_content = source[0].text
                 date_content = date_content.replace('\n', "")
                 date_content = date_content.replace(' ', "")
-                link = 'https://' + source[0].xpath('.//@href')[0].split('?')[0]
+                link = 'https:' + source[0].xpath('.//@href')[0].split('?')[0]
             except:
                 date_content = np.nan
                 link = None
@@ -190,6 +203,8 @@ class Weibo_Date_Range(Social_Media_Downloader):
 
             tmp = pd.DataFrame([date, date_content, user, content, link, forward, comment, like]).T
             tmp.columns = ["date", "date_content", "user", "content", "link", "forward", "comment", "like"]
-            self.dataframe = pd.concat([self.dataframe, tmp])
+            df_list.append(tmp)
+        if df_list:
+            self.dataframe = pd.concat([self.dataframe, pd.concat(df_list)])
 
         time.sleep(delay)
