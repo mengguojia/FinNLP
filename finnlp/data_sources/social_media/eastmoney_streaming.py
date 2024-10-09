@@ -6,6 +6,7 @@ from tqdm import tqdm
 import pandas as pd
 import json
 import time
+import datetime
 from finnlp.data_sources.social_media._base import Social_Media_Downloader
 
 # TODO:
@@ -16,14 +17,14 @@ class Eastmoney_Streaming(Social_Media_Downloader):
         super().__init__(args)
         self.dataframe = pd.DataFrame()
 
-    def download_streaming_stock(self, keyword = "600519", rounds = 3, delay = 0.5):
+    def download_streaming_stock(self, keyword = "600519", end_time = datetime.date.today().isoformat(),rounds = 100, delay = 0.5):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
         }
         print('Downloading ...', end =' ')
         for page in range(rounds):
             url = f"https://guba.eastmoney.com/list,{keyword},f_{page+1}.html"
-            res = requests.get(url=url, headers=headers)
+            res = self._request_get(url=url, headers=headers)
             if res.status_code != 200:
                 break
 
@@ -31,17 +32,45 @@ class Eastmoney_Streaming(Social_Media_Downloader):
             res = res.xpath("//script")[3].xpath("text()")[0]
             article_list, other_list = res.split('var article_list=')[1].strip(";").split(';    var other_list=')
             article_list = json.loads(article_list)
-            tmp = pd.DataFrame(article_list['re'])
-            self.dataframe = pd.concat([self.dataframe, tmp])
+            other_list = json.loads(other_list.split(';var')[0])
+            tmp = article_list['re']
+            tmp2 = other_list['re']
+            for i in tmp2:
+                tmp.remove(i)
+            df = pd.DataFrame(tmp)
+            self.gather_content(df['post_id'],keyword,delay)
+            #self.dataframe = pd.concat([self.dataframe, tmp])
 
-            print(page, end =' ')
+            print('第', page, '页')
+            if datetime.datetime.fromisoformat(df['post_publish_time'].iloc[-1])<datetime.datetime.fromisoformat(end_time):
+                break
             time.sleep(delay)
         
         self.dataframe = self.dataframe.reset_index(drop= True)
 
-    def gather_content(self, delay = 0.01):
-        pbar = tqdm(total = self.dataframe.shape[0], desc= "Gathering news contents")
-        self.dataframe["content"] = self.dataframe.apply(lambda x:self._gather_content_apply(x, pbar, delay), axis = 1)
+    def gather_content(self, post_id, keyword, delay = 0.01):
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36',
+        }
+        content_list = []
+        for post in tqdm(post_id, desc= "Gathering news contents"):
+            if 'ad' in str(post):
+                continue
+            url = f"https://guba.eastmoney.com/news,{keyword},{post}.html"
+            res = res = self._request_get(url=url, headers=headers)
+            if res.status_code != 200:
+                break
+            res = etree.HTML(res.text)
+            scr = res.xpath("//script")[4].xpath("text()")[0]
+            article = scr.split('post_article=')[1].strip()
+            article = json.loads(article)
+            content_list.append(article)
+
+            time.sleep(delay)
+
+        content = pd.DataFrame(content_list)
+        self.dataframe = pd.concat([self.dataframe, content])
+
 
 
         
