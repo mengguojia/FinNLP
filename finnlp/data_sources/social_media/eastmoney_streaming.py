@@ -22,7 +22,7 @@ class Eastmoney_Streaming(Social_Media_Downloader):
         }
         print('Downloading ...', end =' ')
         for page in range(rounds):
-            url = f"https://guba.eastmoney.com/list,{keyword}_{page+1}.html"
+            url = f"https://guba.eastmoney.com/list,{keyword},f_{page+1}.html"
             res = requests.get(url=url, headers=headers)
             if res.status_code != 200:
                 break
@@ -38,6 +38,10 @@ class Eastmoney_Streaming(Social_Media_Downloader):
             time.sleep(delay)
         
         self.dataframe = self.dataframe.reset_index(drop= True)
+
+    def gather_content(self, delay = 0.01):
+        pbar = tqdm(total = self.dataframe.shape[0], desc= "Gathering news contents")
+        self.dataframe["content"] = self.dataframe.apply(lambda x:self._gather_content_apply(x, pbar, delay), axis = 1)
 
 
         
