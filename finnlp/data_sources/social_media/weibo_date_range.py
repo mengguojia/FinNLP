@@ -26,7 +26,7 @@ class Weibo_Date_Range(Social_Media_Downloader):
     def download_date_range_stock(self, start_date, end_date, start_hour= 0,end_hour = 0,stock = "茅台", delay = 0.01):
         start_dt = datetime.datetime.strptime(start_date, '%Y-%m-%d')
         end_dt = datetime.datetime.strptime(end_date, '%Y-%m-%d')
-        start_time_range = [start_dt + datetime.timedelta(hours=i) for i in range(int((end_dt - start_dt).days) * 24 + 1)]
+        start_time_range = [start_dt + datetime.timedelta(hours=i) for i in range(int((end_dt - start_dt).days) * 24)]
         for i in tqdm(start_time_range, desc = "Downloading by dates..."):
             self._gather_one_hour(i.strftime('%Y-%m-%d'), (i+datetime.timedelta(hours=1)).strftime('%Y-%m-%d'), i.strftime('%H'), (i+datetime.timedelta(hours=1)).strftime('%H'), stock, delay)
         self.dataframe = self.dataframe.reset_index(drop = True)
@@ -41,7 +41,7 @@ class Weibo_Date_Range(Social_Media_Downloader):
             for url_new in all_urls[1:]:
                 url_new = base_url + url_new
                 self._gather_other_pages(start_date, url_new, delay)
-                print('第', url_new[-1], '页')
+                print('第', url_new.rsplit('page=')[-1], '页')
          
     def _gather_first_page(self,start_date, end_date, start_hour, end_hour, stock = "茅台", delay = 0.01):  
         

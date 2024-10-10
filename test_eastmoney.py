@@ -6,7 +6,7 @@ stock = "600519"
 config = {
     "use_proxy": "china_free",
     "max_retry": 5,
-    "proxy_pages": 8,
+    "proxy_pages": 10,
     }
 
 downloader = Eastmoney_Streaming(config)
